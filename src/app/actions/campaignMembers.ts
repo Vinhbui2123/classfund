@@ -100,34 +100,32 @@ export async function bulkSetExpectedAmounts(input: {
       return { ok: false, error: 'Đợt thu đã đóng, không thể thay đổi thông tin' };
     }
 
-    // Run inside transaction
-    await db.transaction(async (tx) => {
-      for (const item of validated.items) {
-        const [existing] = await tx.select()
-          .from(campaignMembers)
-          .where(and(
-            eq(campaignMembers.campaignId, validated.campaignId),
-            eq(campaignMembers.memberId, item.memberId)
-          ))
-          .limit(1);
+    // Run sequentially on db (neon-http does not support transactions)
+    for (const item of validated.items) {
+      const [existing] = await db.select()
+        .from(campaignMembers)
+        .where(and(
+          eq(campaignMembers.campaignId, validated.campaignId),
+          eq(campaignMembers.memberId, item.memberId)
+        ))
+        .limit(1);
 
-        if (existing) {
-          await tx.update(campaignMembers)
-            .set({
-              expectedAmount: item.expectedAmount,
-              note: item.note,
-            })
-            .where(eq(campaignMembers.id, existing.id));
-        } else {
-          await tx.insert(campaignMembers).values({
-            campaignId: validated.campaignId,
-            memberId: item.memberId,
+      if (existing) {
+        await db.update(campaignMembers)
+          .set({
             expectedAmount: item.expectedAmount,
             note: item.note,
-          });
-        }
+          })
+          .where(eq(campaignMembers.id, existing.id));
+      } else {
+        await db.insert(campaignMembers).values({
+          campaignId: validated.campaignId,
+          memberId: item.memberId,
+          expectedAmount: item.expectedAmount,
+          note: item.note,
+        });
       }
-    });
+    }
 
     revalidatePath(`/admin/campaigns/${validated.campaignId}`);
     revalidatePath('/admin/collection');
