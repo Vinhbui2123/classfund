@@ -180,33 +180,21 @@ export default function QRModal({
               <span className="font-semibold text-white uppercase">{bankAccountName}</span>
             </div>
 
-            {/* Amount (Editable if remaining > 0) */}
+            {/* Amount */}
             <div className="flex items-center justify-between text-sm border-t border-slate-800/60 pt-3">
               <span className="text-slate-400 text-xs">Số tiền chuyển</span>
-              <div className="flex items-center gap-1.5">
-                {remaining > 0 ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={customAmount.toLocaleString('vi-VN')}
-                      onChange={(e) => handleAmountInputChange(e.target.value)}
-                      className="w-28 bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded py-1 px-2 text-right text-xs font-bold text-cyan-400 placeholder-slate-700 outline-none transition"
-                    />
-                    <span className="text-cyan-400 font-bold text-xs">₫</span>
-                    <button
-                      onClick={() => handleCopy(customAmount.toString(), 'amount')}
-                      className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      {copiedField === 'amount' ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <span className="font-bold text-slate-500">0 ₫</span>
-                )}
+              <div className="flex items-center gap-1.5 font-bold text-cyan-400">
+                <span>{customAmount.toLocaleString('vi-VN')} ₫</span>
+                <button
+                  onClick={() => handleCopy(customAmount.toString(), 'amount')}
+                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                >
+                  {copiedField === 'amount' ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
               </div>
             </div>
 
