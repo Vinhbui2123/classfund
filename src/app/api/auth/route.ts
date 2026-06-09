@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Mật khẩu là bắt buộc' }, { status: 400 });
     }
 
-    console.log('DEBUG: comparing password against hash:', config.ADMIN_PASSWORD_HASH);
     const isMatch = await comparePassword(password, config.ADMIN_PASSWORD_HASH);
     if (!isMatch) {
       return NextResponse.json({ error: 'Mật khẩu không chính xác' }, { status: 401 });
