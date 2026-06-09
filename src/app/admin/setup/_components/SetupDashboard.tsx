@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { readString } from 'react-papaparse';
+import Link from 'next/link';
 import { createMember, updateMember, deleteMember, importMembers } from '@/app/actions/members';
 import { createCampaign, closeCampaign, reopenCampaign } from '@/app/actions/campaigns';
 import { Plus, Trash2, Edit2, Upload, AlertCircle, FileText, CheckCircle2 } from 'lucide-react';
@@ -18,7 +19,6 @@ interface Campaign {
   id: number;
   name: string;
   description: string | null;
-  targetAmount: number;
   status: string;
 }
 
@@ -47,7 +47,6 @@ export default function SetupDashboard({
   const [campaignForm, setCampaignForm] = useState({
     name: '',
     description: '',
-    targetAmount: '',
   });
 
   // UI States
@@ -195,9 +194,8 @@ export default function SetupDashboard({
     e.preventDefault();
     setCampaignMessage(null);
 
-    const amount = parseInt(campaignForm.targetAmount, 10);
-    if (!campaignForm.name || isNaN(amount) || amount < 0) {
-      setCampaignMessage({ type: 'error', text: 'Vui lòng nhập đầy đủ thông tin hợp lệ' });
+    if (!campaignForm.name) {
+      setCampaignMessage({ type: 'error', text: 'Vui lòng nhập tên đợt thu' });
       return;
     }
 
@@ -205,13 +203,12 @@ export default function SetupDashboard({
       const res = await createCampaign({
         name: campaignForm.name,
         description: campaignForm.description || null,
-        targetAmount: amount,
       });
 
       if (res.ok) {
         setCampaignMessage({ type: 'success', text: 'Tạo đợt thu mới thành công!' });
         setCampaignsList(prev => [res.data, ...prev]);
-        setCampaignForm({ name: '', description: '', targetAmount: '' });
+        setCampaignForm({ name: '', description: '' });
       } else {
         setCampaignMessage({ type: 'error', text: res.error || 'Tạo đợt thu thất bại' });
       }
@@ -416,22 +413,13 @@ export default function SetupDashboard({
           <form onSubmit={handleCampaignSubmit} className="bg-slate-900/30 border border-slate-800/80 p-4 rounded-xl space-y-4">
             <div className="font-semibold text-xs text-slate-400 uppercase tracking-wider">Tạo đợt thu mới</div>
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Tên đợt thu (Ví dụ: Học kỳ 1)"
-                  value={campaignForm.name}
-                  onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none transition"
-                />
-                <input
-                  type="number"
-                  placeholder="Số tiền cần đóng (VNĐ)"
-                  value={campaignForm.targetAmount}
-                  onChange={(e) => setCampaignForm(prev => ({ ...prev, targetAmount: e.target.value }))}
-                  className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none transition"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Tên đợt thu (Ví dụ: Học kỳ 1)"
+                value={campaignForm.name}
+                onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none transition"
+              />
               <input
                 type="text"
                 placeholder="Mô tả đợt thu (Ví dụ: Chi quỹ cho các sự kiện học kỳ)"
@@ -458,14 +446,13 @@ export default function SetupDashboard({
               <thead>
                 <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 uppercase font-bold tracking-wider">
                   <th className="py-3 px-4">Đợt thu</th>
-                  <th className="py-3 px-4">Số tiền mục tiêu</th>
-                  <th className="py-3 px-4 text-right">Trạng thái</th>
+                  <th className="py-3 px-4 text-right">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/40">
                 {campaignsList.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="py-6 px-4 text-center text-slate-600">Chưa có đợt thu nào được tạo.</td>
+                    <td colSpan={2} className="py-6 px-4 text-center text-slate-600">Chưa có đợt thu nào được tạo.</td>
                   </tr>
                 ) : (
                   campaignsList.map((c) => (
@@ -474,10 +461,13 @@ export default function SetupDashboard({
                         <div className="font-semibold text-white">{c.name}</div>
                         {c.description && <div className="text-[10px] text-slate-500 mt-0.5">{c.description}</div>}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-slate-300">
-                        {c.targetAmount.toLocaleString('vi-VN')} ₫
-                      </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right space-x-2">
+                        <Link
+                          href={`/admin/campaigns/${c.id}`}
+                          className="inline-flex items-center gap-1 py-1 px-2.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 transition text-[10px] font-bold"
+                        >
+                          Gán mức thu
+                        </Link>
                         {c.status === 'open' ? (
                           <button
                             onClick={() => handleCloseCampaign(c.id)}

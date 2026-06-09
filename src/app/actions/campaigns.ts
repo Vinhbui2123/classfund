@@ -4,6 +4,7 @@ import { db, campaigns } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { campaignSchema } from '@/lib/validators';
+import { isAdminAuthenticated } from '@/lib/auth';
 
 interface ActionResponse<T = any> {
   ok: boolean;
@@ -14,15 +15,17 @@ interface ActionResponse<T = any> {
 export async function createCampaign(input: {
   name: string;
   description?: string | null;
-  targetAmount: number;
 }): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     const validated = campaignSchema.parse(input);
 
     const [newCampaign] = await db.insert(campaigns).values({
       name: validated.name,
       description: validated.description,
-      targetAmount: validated.targetAmount,
       status: 'open',
     }).returning();
 
@@ -39,6 +42,10 @@ export async function createCampaign(input: {
 
 export async function closeCampaign(id: number): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     await db.update(campaigns)
       .set({
         status: 'closed',
@@ -59,6 +66,10 @@ export async function closeCampaign(id: number): Promise<ActionResponse> {
 
 export async function reopenCampaign(id: number): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     await db.update(campaigns)
       .set({
         status: 'open',
@@ -76,3 +87,4 @@ export async function reopenCampaign(id: number): Promise<ActionResponse> {
     return { ok: false, error: error.message || 'Lỗi khi mở lại đợt thu' };
   }
 }
+

@@ -22,7 +22,7 @@ const BANK_NAMES: Record<string, string> = {
 
 interface PublicDashboardProps {
   initialMembers: MemberStatus[];
-  initialCampaigns: { id: number; name: string; targetAmount: number; status: string }[];
+  initialCampaigns: { id: number; name: string; status: string }[];
   balance: number;
   bankBin: string;
   bankAccountNumber: string;
@@ -61,15 +61,18 @@ export default function PublicDashboard({
     return initialCampaigns.find((c) => c.id === selectedCampaignId) || null;
   }, [initialCampaigns, selectedCampaignId]);
 
-  // Filtered members list
+  // Filtered members list: show only members enrolled in the selected campaign
   const filteredMembers = useMemo(() => {
     return initialMembers.filter((m) => {
+      const payment = m.payments.find(p => p.campaignId === selectedCampaignId);
+      if (!payment || !payment.isEnrolled) return false;
+
       const matchName = m.normalizedName.includes(cleanSearch);
       const matchId = m.studentId?.toLowerCase().includes(cleanSearch) || false;
       const matchRef = m.referenceCode.toLowerCase().includes(cleanSearch);
       return matchName || matchId || matchRef;
     });
-  }, [initialMembers, cleanSearch]);
+  }, [initialMembers, cleanSearch, selectedCampaignId]);
 
   const handleOpenQr = (member: MemberStatus) => {
     setSelectedMember(member);
@@ -206,14 +209,14 @@ export default function PublicDashboard({
                   {filteredMembers.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 px-6 text-center text-slate-500">
-                        Không tìm thấy thành viên nào khớp với tìm kiếm.
+                        Không tìm thấy thành viên nào khớp với tìm kiếm hoặc tham gia đợt này.
                       </td>
                     </tr>
                   ) : (
                     filteredMembers.map((member) => {
                       const payment = member.payments.find(p => p.campaignId === selectedCampaign.id);
                       const paid = payment?.paidAmount || 0;
-                      const target = selectedCampaign.targetAmount;
+                      const target = payment?.targetAmount || 0;
                       const isPaidFull = paid >= target;
                       const remaining = Math.max(0, target - paid);
 
@@ -311,7 +314,7 @@ export default function PublicDashboard({
             ? {
                 id: selectedCampaign.id,
                 name: selectedCampaign.name,
-                targetAmount: selectedCampaign.targetAmount,
+                targetAmount: selectedMember.payments.find(p => p.campaignId === selectedCampaign.id)?.targetAmount || 0,
                 paidAmount: selectedMember.payments.find(p => p.campaignId === selectedCampaign.id)?.paidAmount || 0,
               }
             : null
@@ -323,3 +326,4 @@ export default function PublicDashboard({
     </div>
   );
 }
+

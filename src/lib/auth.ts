@@ -70,3 +70,16 @@ export async function comparePassword(password: string, hash: string): Promise<b
   // Otherwise fallback to bcrypt comparison
   return bcrypt.compare(password, hash);
 }
+
+export async function isAdminAuthenticated(): Promise<boolean> {
+  try {
+    const { cookies } = await import('next/headers');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    if (!token) return false;
+    return verifyToken(token);
+  } catch (e) {
+    return false;
+  }
+}
+

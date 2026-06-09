@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, text, integer, timestamp, index, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const members = pgTable('members', {
   id: serial('id').primaryKey(),
@@ -17,11 +17,22 @@ export const campaigns = pgTable('campaigns', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 150 }).notNull(),
   description: text('description'),
-  targetAmount: integer('target_amount').notNull(), // standard integer supports up to 2.1 billion VND
   status: varchar('status', { length: 10 }).default('open').notNull(), // 'open' or 'closed'
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   closedAt: timestamp('closed_at', { withTimezone: true }),
 });
+
+export const campaignMembers = pgTable('campaign_members', {
+  id: serial('id').primaryKey(),
+  campaignId: integer('campaign_id').references(() => campaigns.id, { onDelete: 'cascade' }).notNull(),
+  memberId: integer('member_id').references(() => members.id, { onDelete: 'restrict' }).notNull(),
+  expectedAmount: integer('expected_amount').notNull(),
+  note: text('note'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  uniqueIndex('campaign_member_unique_idx').on(table.campaignId, table.memberId),
+  index('campaign_member_member_idx').on(table.memberId),
+]);
 
 export const transactions = pgTable('transactions', {
   id: serial('id').primaryKey(),
@@ -42,3 +53,4 @@ export const expenses = pgTable('expenses', {
   expenseDate: timestamp('expense_date', { withTimezone: true }).defaultNow().notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+

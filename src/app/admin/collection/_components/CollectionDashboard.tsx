@@ -8,7 +8,6 @@ import { Check, Edit3, X, Coins, Plus, CheckCircle2, AlertCircle } from 'lucide-
 interface Campaign {
   id: number;
   name: string;
-  targetAmount: number;
   status: string;
 }
 
@@ -126,7 +125,7 @@ export default function CollectionDashboard({
                   <th key={camp.id} className="py-4 px-6 min-w-[200px]">
                     <div className="font-semibold text-white">{camp.name}</div>
                     <div className="text-[10px] text-slate-500 font-medium normal-case mt-0.5">
-                      Mục tiêu: {camp.targetAmount.toLocaleString('vi-VN')} ₫
+                      Cá nhân hoá mức thu
                     </div>
                   </th>
                 ))}
@@ -153,14 +152,17 @@ export default function CollectionDashboard({
                     {/* Campaigns Columns */}
                     {campaigns.map((camp) => {
                       const payment = member.payments.find(p => p.campaignId === camp.id);
+                      const isEnrolled = payment?.isEnrolled ?? false;
                       const paid = payment?.paidAmount || 0;
-                      const target = camp.targetAmount;
+                      const target = payment?.targetAmount || 0;
                       const isPaidFull = paid >= target;
                       const remaining = Math.max(0, target - paid);
 
                       return (
                         <td key={camp.id} className="py-4 px-6 border-r border-slate-800/20">
-                          {isPaidFull ? (
+                          {!isEnrolled ? (
+                            <div className="text-slate-600 font-semibold text-center select-none">—</div>
+                          ) : isPaidFull ? (
                             <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                               <CheckCircle2 className="w-4 h-4" />
                               <span>Đã đóng đủ</span>
@@ -179,7 +181,7 @@ export default function CollectionDashboard({
                               <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
                                 <div 
                                   className="bg-cyan-500 h-1.5 rounded-full transition-all duration-300"
-                                  style={{ width: `${Math.min(100, (paid / target) * 100)}%` }}
+                                  style={{ width: `${target > 0 ? Math.min(100, (paid / target) * 100) : 0}%` }}
                                 />
                               </div>
 

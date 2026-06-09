@@ -1,9 +1,10 @@
 'use server';
 
-import { db, transactions, campaigns, members } from '@/lib/db';
+import { db, transactions, campaigns, members, campaignMembers } from '@/lib/db';
 import { eq, and, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { transactionSchema } from '@/lib/validators';
+import { isAdminAuthenticated } from '@/lib/auth';
 
 interface ActionResponse<T = any> {
   ok: boolean;
@@ -19,6 +20,10 @@ export async function recordTransaction(input: {
   note?: string | null;
 }): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     const validated = transactionSchema.parse(input);
 
     // Check campaign status
@@ -30,6 +35,19 @@ export async function recordTransaction(input: {
       return { ok: false, error: 'Đợt thu đã đóng, không thể ghi nhận giao dịch mới' };
     }
 
+    // Check member campaign enrollment
+    const [enrollment] = await db.select()
+      .from(campaignMembers)
+      .where(and(
+        eq(campaignMembers.campaignId, validated.campaignId),
+        eq(campaignMembers.memberId, validated.memberId)
+      ))
+      .limit(1);
+
+    if (!enrollment) {
+      return { ok: false, error: 'Thành viên này không nằm trong đợt thu' };
+    }
+
     const [tx] = await db.insert(transactions).values({
       memberId: validated.memberId,
       campaignId: validated.campaignId,
@@ -39,6 +57,7 @@ export async function recordTransaction(input: {
     }).returning();
 
     revalidatePath('/admin/collection');
+    revalidatePath(`/admin/campaigns/${validated.campaignId}`);
     revalidatePath('/');
 
     return { ok: true, data: tx };
@@ -54,6 +73,10 @@ export async function recordFullPayment(
   paymentMethod: 'cash' | 'transfer' = 'cash'
 ): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     // Check campaign
     const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, campaignId)).limit(1);
     if (!campaign) {
@@ -61,6 +84,19 @@ export async function recordFullPayment(
     }
     if (campaign.status === 'closed') {
       return { ok: false, error: 'Đợt thu đã đóng, không thể ghi nhận giao dịch mới' };
+    }
+
+    // Check member campaign enrollment
+    const [enrollment] = await db.select()
+      .from(campaignMembers)
+      .where(and(
+        eq(campaignMembers.campaignId, campaignId),
+        eq(campaignMembers.memberId, memberId)
+      ))
+      .limit(1);
+
+    if (!enrollment) {
+      return { ok: false, error: 'Thành viên này không nằm trong đợt thu' };
     }
 
     // Get total paid already
@@ -71,7 +107,7 @@ export async function recordFullPayment(
     .where(and(eq(transactions.memberId, memberId), eq(transactions.campaignId, campaignId)));
 
     const paidAlready = paymentSum?.total || 0;
-    const remaining = campaign.targetAmount - paidAlready;
+    const remaining = enrollment.expectedAmount - paidAlready;
 
     if (remaining <= 0) {
       return { ok: false, error: 'Thành viên đã hoàn thành đợt thu này' };
@@ -86,6 +122,7 @@ export async function recordFullPayment(
     }).returning();
 
     revalidatePath('/admin/collection');
+    revalidatePath(`/admin/campaigns/${campaignId}`);
     revalidatePath('/');
 
     return { ok: true, data: tx };
@@ -97,6 +134,10 @@ export async function recordFullPayment(
 
 export async function deleteTransaction(id: number): Promise<ActionResponse> {
   try {
+    if (!(await isAdminAuthenticated())) {
+      return { ok: false, error: 'Yêu cầu quyền admin' };
+    }
+
     // Get transaction info to check campaign status
     const [tx] = await db.select().from(transactions).where(eq(transactions.id, id)).limit(1);
     if (!tx) {
@@ -111,6 +152,7 @@ export async function deleteTransaction(id: number): Promise<ActionResponse> {
     await db.delete(transactions).where(eq(transactions.id, id));
 
     revalidatePath('/admin/collection');
+    revalidatePath(`/admin/campaigns/${tx.campaignId}`);
     revalidatePath('/');
 
     return { ok: true };
@@ -119,3 +161,4 @@ export async function deleteTransaction(id: number): Promise<ActionResponse> {
     return { ok: false, error: error.message || 'Lỗi khi xoá giao dịch' };
   }
 }
+

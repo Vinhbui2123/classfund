@@ -18,7 +18,36 @@ export const campaignSchema = z.object({
     (val) => (val === '' ? null : val),
     z.string().nullable()
   ),
-  targetAmount: z.number().int().min(0, 'Số tiền mục tiêu không được âm'),
+});
+
+export const campaignMemberSchema = z.object({
+  campaignId: z.number().int().positive('ID đợt thu không hợp lệ'),
+  memberId: z.number().int().positive('ID thành viên không hợp lệ'),
+  expectedAmount: z.number().int().min(0, 'Số tiền cần đóng không được âm'),
+  note: z.preprocess(
+    (val) => (val === '' ? null : val),
+    z.string().nullable()
+  ),
+});
+
+export const bulkSetExpectedAmountsSchema = z.object({
+  campaignId: z.number().int().positive('ID đợt thu không hợp lệ'),
+  items: z.array(
+    z.object({
+      memberId: z.number().int().positive('ID thành viên không hợp lệ'),
+      expectedAmount: z.number().int().min(0, 'Số tiền cần đóng không được âm'),
+      note: z.preprocess(
+        (val) => (val === '' ? null : val),
+        z.string().nullable()
+      ),
+    })
+  ).refine(
+    (items) => {
+      const ids = items.map((item) => item.memberId);
+      return ids.length === new Set(ids).size;
+    },
+    { message: 'Mỗi thành viên chỉ được cấu hình một lần trong danh sách' }
+  ),
 });
 
 export const transactionSchema = z.object({
