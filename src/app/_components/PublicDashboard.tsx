@@ -6,6 +6,20 @@ import QRModal from './QRModal';
 import { Search, Wallet, CheckCircle2, AlertCircle, QrCode, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
+const BANK_NAMES: Record<string, string> = {
+  '970415': 'VietinBank',
+  '970436': 'Vietcombank',
+  '970418': 'BIDV',
+  '970422': 'MB Bank',
+  '970407': 'Techcombank',
+  '970432': 'VPBank',
+  '970416': 'ACB',
+  '970423': 'TPBank',
+  '970403': 'Sacombank',
+  '970454': 'Bản Việt',
+  '970439': 'ZaloPay',
+};
+
 interface PublicDashboardProps {
   initialMembers: MemberStatus[];
   initialCampaigns: { id: number; name: string; targetAmount: number; status: string }[];
@@ -118,7 +132,7 @@ export default function PublicDashboard({
           <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md p-6 flex flex-col justify-between shadow-xl">
             <h3 className="text-sm text-slate-400 font-medium">Tài Khoản Thụ Hưởng</h3>
             <div className="mt-4 space-y-1.5">
-              <div className="text-xs text-slate-500 font-mono">MB Bank (Military Bank)</div>
+              <div className="text-xs text-slate-500 font-mono">{BANK_NAMES[bankBin] || 'Ngân hàng'}</div>
               <div className="text-lg font-bold text-white font-mono">{bankAccountNumber}</div>
               <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">{bankAccountName}</div>
             </div>

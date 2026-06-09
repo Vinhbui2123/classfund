@@ -5,6 +5,20 @@ import QRCode from 'qrcode';
 import { buildVietQRString, generatePaymentAddInfo } from '@/lib/vietqr';
 import { Check, Copy, X } from 'lucide-react';
 
+const BANK_NAMES: Record<string, string> = {
+  '970415': 'VietinBank',
+  '970436': 'Vietcombank',
+  '970418': 'BIDV',
+  '970422': 'MB Bank',
+  '970407': 'Techcombank',
+  '970432': 'VPBank',
+  '970416': 'ACB',
+  '970423': 'TPBank',
+  '970403': 'Sacombank',
+  '970454': 'Bản Việt',
+  '970439': 'ZaloPay',
+};
+
 interface QRModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -114,7 +128,7 @@ export default function QRModal({
             {/* Bank Info */}
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-400 text-xs">Ngân hàng</span>
-              <span className="font-semibold text-white">MB Bank (BIN: {bankBin})</span>
+              <span className="font-semibold text-white">{BANK_NAMES[bankBin] || 'Ngân hàng'} (BIN: {bankBin})</span>
             </div>
 
             {/* Account Number */}
