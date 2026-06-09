@@ -54,6 +54,19 @@ export async function verifyToken(token: string): Promise<boolean> {
   return expectedSignature === signature;
 }
 
-export function comparePassword(password: string, hash: string): Promise<boolean> {
+async function sha256(message: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
+  // If the hash is a 64-character hex string, compare using SHA-256
+  if (hash.length === 64 && /^[0-9a-f]+$/i.test(hash)) {
+    const userHash = await sha256(password);
+    return userHash.toLowerCase() === hash.toLowerCase();
+  }
+  // Otherwise fallback to bcrypt comparison
   return bcrypt.compare(password, hash);
 }
