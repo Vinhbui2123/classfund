@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { MemberStatus } from '@/lib/db/queries';
 import { recordTransaction, recordFullPayment } from '@/app/actions/transactions';
-import { Check, Edit3, X, Coins, Plus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface Campaign {
   id: number;
@@ -20,8 +20,6 @@ export default function CollectionDashboard({
   membersStatus,
   campaigns,
 }: CollectionDashboardProps) {
-  const [list, setList] = useState<MemberStatus[]>(membersStatus);
-  
   // Custom transaction record state
   const [activeRecord, setActiveRecord] = useState<{
     member: MemberStatus;
@@ -44,7 +42,6 @@ export default function CollectionDashboard({
     try {
       const res = await recordFullPayment(memberId, campaignId, 'cash');
       if (res.ok) {
-        // Success feedback
         alert('Ghi nhận đóng đủ thành công!');
         window.location.reload(); // Quick refresh to update queries and state
       } else {
@@ -96,8 +93,9 @@ export default function CollectionDashboard({
       } else {
         setMessage({ type: 'error', text: res.error || 'Ghi nhận đóng tiền thất bại' });
       }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Lỗi khi xử lý' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi xử lý';
+      setMessage({ type: 'error', text: msg });
     } finally {
       setLoading(false);
     }
@@ -107,45 +105,43 @@ export default function CollectionDashboard({
     <div className="space-y-6">
       
       {/* Title */}
-      <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-white">Quản Lý Thu Quỹ Lớp</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Theo dõi chi tiết công nợ và ghi nhận các khoản thu</p>
-        </div>
+      <div className="border-b border-border-subtle pb-3">
+        <h2 className="text-lg font-bold text-text-main">Quản Lý Thu Quỹ Lớp</h2>
+        <p className="text-xs text-text-muted mt-0.5">Theo dõi chi tiết công nợ và ghi nhận các khoản thu</p>
       </div>
 
       {/* Grid Layout of Collection */}
-      <div className="bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 uppercase font-bold tracking-wider">
-                <th className="py-4 px-6 min-w-[150px]">Thành viên</th>
+              <tr className="border-b border-border-subtle bg-bg-page/50 text-text-muted uppercase font-bold tracking-wider">
+                <th className="py-4 px-6 min-w-[160px] sticky left-0 bg-bg-surface z-10">Thành viên</th>
                 {campaigns.map((camp) => (
-                  <th key={camp.id} className="py-4 px-6 min-w-[200px]">
-                    <div className="font-semibold text-white">{camp.name}</div>
-                    <div className="text-[10px] text-slate-500 font-medium normal-case mt-0.5">
+                  <th key={camp.id} className="py-4 px-6 min-w-[220px]">
+                    <div className="font-semibold text-text-main">{camp.name}</div>
+                    <div className="text-[10px] text-text-muted font-medium normal-case mt-0.5">
                       Cá nhân hoá mức thu
                     </div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/40">
-              {list.length === 0 ? (
+            <tbody className="divide-y divide-border-subtle/50">
+              {membersStatus.length === 0 ? (
                 <tr>
-                  <td colSpan={campaigns.length + 1} className="py-12 px-6 text-center text-slate-500">
+                  <td colSpan={campaigns.length + 1} className="py-12 px-6 text-center text-text-muted">
                     Chưa có thành viên nào. Vui lòng vào Cài đặt để thêm thành viên trước.
                   </td>
                 </tr>
               ) : (
-                list.map((member) => (
-                  <tr key={member.id} className="hover:bg-slate-900/10 transition">
+                membersStatus.map((member) => (
+                  <tr key={member.id} className="hover:bg-bg-page/20 transition">
                     {/* Member Column */}
-                    <td className="py-4 px-6 border-r border-slate-800/20">
-                      <div className="font-semibold text-white">{member.fullName}</div>
+                    <td className="py-4 px-6 border-r border-border-subtle/30 sticky left-0 bg-bg-surface z-10">
+                      <div className="font-semibold text-text-main">{member.fullName}</div>
                       {member.studentId && (
-                        <div className="text-[10px] text-slate-500 mt-0.5 font-mono">MSSV: {member.studentId}</div>
+                        <div className="text-[10px] text-text-muted mt-0.5 font-mono">MSSV: {member.studentId}</div>
                       )}
                     </td>
 
@@ -159,11 +155,11 @@ export default function CollectionDashboard({
                       const remaining = Math.max(0, target - paid);
 
                       return (
-                        <td key={camp.id} className="py-4 px-6 border-r border-slate-800/20">
+                        <td key={camp.id} className="py-4 px-6 border-r border-border-subtle/30">
                           {!isEnrolled ? (
-                            <div className="text-slate-600 font-semibold text-center select-none">—</div>
+                            <div className="text-text-muted font-semibold text-center select-none">—</div>
                           ) : isPaidFull ? (
-                            <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                            <div className="flex items-center gap-1.5 text-status-success-text font-bold">
                               <CheckCircle2 className="w-4 h-4" />
                               <span>Đã đóng đủ</span>
                             </div>
@@ -171,16 +167,16 @@ export default function CollectionDashboard({
                             <div className="space-y-3">
                               {/* Payment Status indicator */}
                               <div className="flex items-center justify-between">
-                                <span className="text-slate-400">Đã đóng:</span>
-                                <span className="font-bold text-white">
-                                  {paid.toLocaleString('vi-VN')} <span className="text-[10px] text-slate-500">/ {target.toLocaleString('vi-VN')} ₫</span>
+                                <span className="text-text-muted">Đã đóng:</span>
+                                <span className="font-bold text-text-main">
+                                  {paid.toLocaleString('vi-VN')} <span className="text-[10px] text-text-muted font-normal">/ {target.toLocaleString('vi-VN')} ₫</span>
                                 </span>
                               </div>
 
                               {/* Progress bar */}
-                              <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-bg-page rounded-full h-1.5 overflow-hidden border border-border-subtle/30">
                                 <div 
-                                  className="bg-cyan-500 h-1.5 rounded-full transition-all duration-300"
+                                  className="bg-brand h-1.5 rounded-full transition-all duration-300"
                                   style={{ width: `${target > 0 ? Math.min(100, (paid / target) * 100) : 0}%` }}
                                 />
                               </div>
@@ -190,20 +186,20 @@ export default function CollectionDashboard({
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handleRecordFull(member.id, camp.id)}
-                                    className="flex-1 py-1 px-2 rounded bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 hover:bg-emerald-500 hover:text-slate-950 hover:border-emerald-400 font-semibold transition text-[10px] text-center"
+                                    className="flex-1 py-1 px-2.5 rounded-lg bg-status-success-bg border border-status-success-text/10 text-status-success-text hover:bg-status-success-text hover:text-white font-bold transition text-[10px] text-center cursor-pointer h-7"
                                   >
                                     Đóng đủ
                                   </button>
                                   <button
                                     onClick={() => handleOpenRecordCustom(member, camp, remaining)}
-                                    className="py-1 px-2 rounded bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition text-[10px]"
+                                    className="py-1 px-2.5 rounded-lg bg-bg-page border border-border-subtle text-text-muted hover:text-text-main hover:border-brand transition text-[10px] cursor-pointer h-7"
                                     title="Ghi nhận số tiền tùy chỉnh"
                                   >
                                     Thu lẻ
                                   </button>
                                 </div>
                               ) : (
-                                <div className="text-[10px] text-slate-500 italic">Đợt thu đã đóng</div>
+                                <div className="text-[10px] text-text-muted italic">Đợt thu đã đóng</div>
                               )}
                             </div>
                           )}
@@ -220,54 +216,54 @@ export default function CollectionDashboard({
 
       {/* Record Custom Payment Modal */}
       {activeRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-sm scale-95 overflow-hidden rounded-xl bg-slate-900 border border-slate-800 p-5 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-sm scale-95 overflow-hidden rounded-2xl bg-bg-surface border border-border-subtle p-5 sm:p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-sm font-bold text-white">Ghi Nhận Đóng Quỹ</h3>
+            <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
+              <h3 className="text-sm font-bold text-text-main">Ghi Nhận Đóng Quỹ</h3>
               <button
                 onClick={() => setActiveRecord(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1 rounded-full text-text-muted hover:text-text-main hover:bg-bg-page transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Form */}
-            <form onSubmit={handleCustomSubmit} className="space-y-4 py-4 text-xs">
+            <form onSubmit={handleCustomSubmit} className="space-y-4 py-3 text-xs">
               {/* Member Details */}
-              <div className="space-y-1">
-                <div className="text-slate-400">Thành viên:</div>
-                <div className="font-bold text-white text-sm">{activeRecord.member.fullName}</div>
+              <div className="space-y-0.5">
+                <div className="text-text-muted text-[10px] font-bold uppercase tracking-wider">Thành viên</div>
+                <div className="font-bold text-text-main text-sm">{activeRecord.member.fullName}</div>
               </div>
 
               {/* Campaign Details */}
-              <div className="space-y-1">
-                <div className="text-slate-400">Đợt thu:</div>
-                <div className="font-semibold text-white">{activeRecord.campaign.name}</div>
+              <div className="space-y-0.5">
+                <div className="text-text-muted text-[10px] font-bold uppercase tracking-wider">Đợt thu</div>
+                <div className="font-semibold text-text-main">{activeRecord.campaign.name}</div>
               </div>
 
               {/* Amount Paid input */}
               <div className="space-y-1">
-                <label className="text-slate-400">Số tiền nộp (VNĐ):</label>
+                <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider">Số tiền nộp (VNĐ)</label>
                 <input
                   type="number"
                   placeholder="200000"
                   value={form.amountPaid}
                   onChange={(e) => setForm(prev => ({ ...prev, amountPaid: e.target.value }))}
-                  className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-white placeholder-slate-600 outline-none transition"
+                  className="w-full bg-bg-page border border-border-subtle hover:border-brand/40 focus:border-brand rounded-xl py-2 px-3 text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-semibold text-right"
                   required
                 />
               </div>
 
               {/* Payment Method select */}
               <div className="space-y-1">
-                <label className="text-slate-400">Hình thức thanh toán:</label>
+                <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider">Hình thức thanh toán</label>
                 <select
                   value={form.paymentMethod}
                   onChange={(e) => setForm(prev => ({ ...prev, paymentMethod: e.target.value as 'cash' | 'transfer' }))}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-cyan-500 rounded-lg py-2 px-3 text-white outline-none transition"
+                  className="w-full bg-bg-page border border-border-subtle focus:border-brand rounded-xl py-2 px-3 text-text-main outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-medium"
                 >
                   <option value="cash">Tiền mặt</option>
                   <option value="transfer">Chuyển khoản</option>
@@ -276,41 +272,41 @@ export default function CollectionDashboard({
 
               {/* Notes */}
               <div className="space-y-1">
-                <label className="text-slate-400">Ghi chú (nếu có):</label>
+                <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider">Ghi chú (nếu có)</label>
                 <input
                   type="text"
                   placeholder="Nộp trước một nửa..."
                   value={form.note}
                   onChange={(e) => setForm(prev => ({ ...prev, note: e.target.value }))}
-                  className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-white placeholder-slate-600 outline-none transition"
+                  className="w-full bg-bg-page border border-border-subtle hover:border-brand/40 focus:border-brand rounded-xl py-2 px-3 text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10"
                 />
               </div>
 
               {/* Feedback messages */}
               {message && (
-                <div className={`p-2.5 rounded-lg border flex items-center gap-2 text-[11px] ${
+                <div className={`p-3 rounded-xl border flex items-center gap-2 text-[11px] ${
                   message.type === 'success' 
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                    : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                    ? 'bg-status-success-bg border-status-success-text/10 text-status-success-text' 
+                    : 'bg-status-error-bg border-status-error-text/10 text-status-error-text'
                 }`}>
                   {message.type === 'success' ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                  <span>{message.text}</span>
+                  <span className="font-semibold">{message.text}</span>
                 </div>
               )}
 
               {/* Buttons */}
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2 h-10">
                 <button
                   type="button"
                   onClick={() => setActiveRecord(null)}
-                  className="py-2 px-3 bg-slate-800 text-slate-300 hover:text-white rounded-lg transition"
+                  className="py-2.5 px-4 bg-bg-page border border-border-subtle text-text-muted hover:text-text-main rounded-xl transition cursor-pointer font-bold"
                 >
                   Huỷ
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="py-2 px-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg font-bold transition disabled:opacity-55"
+                  className="py-2.5 px-5 bg-brand hover:bg-brand-hover text-white rounded-xl font-bold transition disabled:opacity-55 cursor-pointer"
                 >
                   {loading ? 'Đang ghi...' : 'Xác nhận'}
                 </button>

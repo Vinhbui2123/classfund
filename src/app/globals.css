@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-bg-page: var(--bg-page);
+  --color-bg-surface: var(--bg-surface);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+
+  --color-status-success-text: var(--status-success-text);
+  --color-status-success-bg: var(--status-success-bg);
+  --color-status-warning-text: var(--status-warning-text);
+  --color-status-warning-bg: var(--status-warning-bg);
+  --color-status-error-text: var(--status-error-text);
+  --color-status-error-bg: var(--status-error-bg);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light mode tokens */
+  --brand: #059669; /* emerald-600 */
+  --brand-hover: #047857; /* emerald-700 */
+  --bg-page: #f8fafc; /* slate-50 */
+  --bg-surface: #ffffff; /* white */
+  --border-subtle: #e2e8f0; /* slate-200 */
+  --text-main: #0f172a; /* slate-900 */
+  --text-muted: #64748b; /* slate-500 */
+
+  --status-success-text: #047857; /* emerald-700 */
+  --status-success-bg: #ecfdf5; /* emerald-50 */
+  --status-warning-text: #b45309; /* amber-700 */
+  --status-warning-bg: #fef3c7; /* amber-50 */
+  --status-error-text: #be123c; /* rose-700 */
+  --status-error-bg: #fff1f2; /* rose-50 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Force dark mode class and media query support */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --brand: #10b981; /* emerald-500 */
+    --brand-hover: #34d399; /* emerald-400 */
+    --bg-page: #020617; /* slate-950 */
+    --bg-surface: #0f172a; /* slate-900 */
+    --border-subtle: #1e293b; /* slate-800 */
+    --text-main: #f1f5f9; /* slate-100 */
+    --text-muted: #94a3b8; /* slate-400 */
+
+    --status-success-text: #34d399; /* emerald-400 */
+    --status-success-bg: #064e3b; /* emerald-950 */
+    --status-warning-text: #fbbf24; /* amber-400 */
+    --status-warning-bg: #78350f; /* amber-950 */
+    --status-error-text: #fb7185; /* rose-400 */
+    --status-error-bg: #4c0519; /* rose-950 */
   }
 }
 
+.dark {
+  --brand: #10b981; /* emerald-500 */
+  --brand-hover: #34d399; /* emerald-400 */
+  --bg-page: #020617; /* slate-950 */
+  --bg-surface: #0f172a; /* slate-900 */
+  --border-subtle: #1e293b; /* slate-800 */
+  --text-main: #f1f5f9; /* slate-100 */
+  --text-muted: #94a3b8; /* slate-400 */
+
+  --status-success-text: #34d399; /* emerald-400 */
+  --status-success-bg: #064e3b; /* emerald-950 */
+  --status-warning-text: #fbbf24; /* amber-400 */
+  --status-warning-bg: #78350f; /* amber-950 */
+  --status-error-text: #fb7185; /* rose-400 */
+  --status-error-bg: #4c0519; /* rose-950 */
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Tabular numbers for clean financial alignment */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }

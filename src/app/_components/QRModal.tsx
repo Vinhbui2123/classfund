@@ -1,9 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { buildVietQRString, generatePaymentAddInfo } from '@/lib/vietqr';
-import { Check, Copy, X, AlertCircle } from 'lucide-react';
+import { Check, Copy, X, QrCode } from 'lucide-react';
+import { useToast } from './Toast';
 
 const BANK_NAMES: Record<string, string> = {
   '970415': 'VietinBank',
@@ -48,20 +50,16 @@ export default function QRModal({
   bankAccountNumber,
   bankAccountName,
 }: QRModalProps) {
-  const [customAmount, setCustomAmount] = useState<number>(0);
+  const { showToast } = useToast();
+  const [customAmount, setCustomAmount] = useState<number>(() => {
+    return campaign ? Math.max(0, campaign.targetAmount - campaign.paidAmount) : 0;
+  });
   const [qrUrl, setQrUrl] = useState<string>('');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   const paymentMessage = (member && campaign) 
     ? generatePaymentAddInfo(member.referenceCode, campaign.name)
     : '';
-
-  // Set default amount when campaign loads
-  useEffect(() => {
-    if (campaign) {
-      setCustomAmount(Math.max(0, campaign.targetAmount - campaign.paidAmount));
-    }
-  }, [campaign]);
 
   // Generate QR code when details change
   useEffect(() => {
@@ -90,9 +88,10 @@ export default function QRModal({
 
   if (!isOpen || !member || !campaign) return null;
 
-  const handleCopy = (text: string, field: string) => {
+  const handleCopy = (text: string, field: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
+    showToast(`Đã sao chép ${label}!`, 'success');
     setTimeout(() => setCopiedField(null), 2000);
   };
 
@@ -104,69 +103,88 @@ export default function QRModal({
   const remaining = Math.max(0, campaign.targetAmount - campaign.paidAmount);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300">
-      <div className="relative w-full max-w-md scale-95 overflow-hidden rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 shadow-2xl p-6 transition-all duration-300 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 p-4">
+      <div className="relative w-full max-w-md scale-95 overflow-hidden rounded-2xl bg-bg-surface border border-border-subtle text-text-main shadow-2xl p-5 sm:p-6 transition-all duration-300 animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-4 border-b border-border-subtle">
           <div>
-            <h3 className="text-lg font-bold text-white">Quét Mã QR Đóng Quỹ</h3>
-            <p className="text-xs text-slate-400 mt-0.5">{campaign.name}</p>
+            <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-brand" />
+              Quét Mã QR Đóng Quỹ
+            </h3>
+            <p className="text-xs text-text-muted mt-0.5">Đợt thu: {campaign.name}</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="rounded-full p-1.5 text-text-muted hover:text-text-main hover:bg-bg-page transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col items-center py-6">
+        <div className="flex flex-col items-center py-5">
           
           {remaining <= 0 ? (
-            <div className="w-full mb-6 p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-center flex flex-col items-center gap-1.5">
+            <div className="w-full mb-4 p-4 rounded-xl border border-status-success-text/25 bg-status-success-bg text-status-success-text text-center flex flex-col items-center gap-1.5">
               <Check className="w-6 h-6" />
               <span className="font-bold text-xs">ĐÃ ĐÓNG ĐỦ ĐỢT THU NÀY</span>
             </div>
           ) : (
             <>
               {/* QR Display */}
-              <div className="relative p-3 bg-white rounded-xl shadow-lg border border-slate-200 mb-6 overflow-hidden">
+              <div className="relative p-3 bg-white rounded-xl shadow-sm border border-slate-200 mb-4 overflow-hidden">
                 {qrUrl ? (
-                  <img src={qrUrl} alt="VietQR Code" className="w-56 h-56 object-contain" />
+                  <img src={qrUrl} alt="VietQR Code" className="w-52 h-52 object-contain" />
                 ) : (
-                  <div className="w-56 h-56 flex items-center justify-center text-slate-500">
+                  <div className="w-52 h-52 flex items-center justify-center text-text-muted text-xs">
                     Đang tạo mã QR...
                   </div>
                 )}
               </div>
 
-              <p className="text-center text-xs text-slate-400 mb-6 max-w-xs leading-relaxed">
+              {/* Amount adjust input for paying custom amount */}
+              <div className="w-full mb-4 space-y-1.5">
+                <label className="text-text-muted text-[11px] font-semibold uppercase tracking-wider block">
+                  Số tiền đóng (Thay đổi nếu đóng lẻ)
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={customAmount.toLocaleString('vi-VN')}
+                    onChange={(e) => handleAmountInputChange(e.target.value)}
+                    className="w-full bg-bg-page border border-border-subtle focus:border-brand rounded-xl py-2 px-3.5 text-sm font-bold text-text-main outline-none transition pr-10 text-right tabular-nums h-10 focus:ring-2 focus:ring-brand/10"
+                  />
+                  <span className="absolute right-3.5 text-xs text-text-muted font-semibold pointer-events-none">VND</span>
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-text-muted mb-4 max-w-xs leading-relaxed">
                 Mở ứng dụng Mobile Banking của bạn, quét mã QR và xác nhận thanh toán.
               </p>
             </>
           )}
 
           {/* Copyable Details */}
-          <div className="w-full space-y-3 bg-slate-950/50 p-4 rounded-xl border border-slate-800/80">
+          <div className="w-full space-y-2.5 bg-bg-page/60 p-4 rounded-xl border border-border-subtle">
             {/* Bank Info */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-400 text-xs">Ngân hàng</span>
-              <span className="font-semibold text-white">{BANK_NAMES[bankBin] || 'Ngân hàng'}</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-text-muted">Ngân hàng</span>
+              <span className="font-semibold text-text-main">{BANK_NAMES[bankBin] || 'Ngân hàng'}</span>
             </div>
 
             {/* Account Number */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-400 text-xs">Số tài khoản</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-text-muted">Số tài khoản</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-white font-mono">{bankAccountNumber}</span>
+                <span className="font-semibold text-text-main font-mono">{bankAccountNumber}</span>
                 <button
-                  onClick={() => handleCopy(bankAccountNumber, 'account')}
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  onClick={() => handleCopy(bankAccountNumber, 'account', 'số tài khoản')}
+                  className="p-1 rounded hover:bg-bg-surface text-text-muted hover:text-text-main transition cursor-pointer"
                 >
                   {copiedField === 'account' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-brand" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -175,22 +193,22 @@ export default function QRModal({
             </div>
 
             {/* Account Name */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-400 text-xs">Tên người nhận</span>
-              <span className="font-semibold text-white uppercase">{bankAccountName}</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-text-muted">Tên người nhận</span>
+              <span className="font-semibold text-text-main uppercase">{bankAccountName}</span>
             </div>
 
             {/* Amount */}
-            <div className="flex items-center justify-between text-sm border-t border-slate-800/60 pt-3">
-              <span className="text-slate-400 text-xs">Số tiền chuyển</span>
-              <div className="flex items-center gap-1.5 font-bold text-cyan-400">
+            <div className="flex items-center justify-between text-xs sm:text-sm border-t border-border-subtle pt-2.5">
+              <span className="text-text-muted">Số tiền chuyển</span>
+              <div className="flex items-center gap-1.5 font-bold text-brand tabular-nums">
                 <span>{customAmount.toLocaleString('vi-VN')} ₫</span>
                 <button
-                  onClick={() => handleCopy(customAmount.toString(), 'amount')}
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  onClick={() => handleCopy(customAmount.toString(), 'amount', 'số tiền')}
+                  className="p-1 rounded hover:bg-bg-surface text-text-muted hover:text-brand transition cursor-pointer"
                 >
                   {copiedField === 'amount' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-brand" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -199,16 +217,16 @@ export default function QRModal({
             </div>
 
             {/* Description */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-400 text-xs">Nội dung chuyển khoản</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-text-muted">Nội dung chuyển khoản</span>
               <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-white font-mono">{paymentMessage}</span>
+                <span className="font-semibold text-text-main font-mono">{paymentMessage}</span>
                 <button
-                  onClick={() => handleCopy(paymentMessage, 'msg')}
-                  className="p-1 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  onClick={() => handleCopy(paymentMessage, 'msg', 'nội dung chuyển khoản')}
+                  className="p-1 rounded hover:bg-bg-surface text-text-muted hover:text-text-main transition cursor-pointer"
                 >
                   {copiedField === 'msg' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-brand" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -219,10 +237,10 @@ export default function QRModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 mt-2">
+        <div className="flex justify-end gap-3 mt-1">
           <button
             onClick={onClose}
-            className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-700 transition cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl bg-bg-page border border-border-subtle text-text-main font-semibold text-sm hover:bg-bg-surface transition cursor-pointer"
           >
             Đóng
           </button>
@@ -231,4 +249,3 @@ export default function QRModal({
     </div>
   );
 }
-

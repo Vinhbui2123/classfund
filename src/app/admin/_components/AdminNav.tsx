@@ -31,9 +31,9 @@ export default function AdminNav() {
   ];
 
   return (
-    <div className="flex items-center gap-2 sm:gap-4">
+    <div className="flex items-center gap-2 sm:gap-3">
       {/* Navigation tabs */}
-      <nav className="flex items-center gap-1 sm:gap-2">
+      <nav className="flex items-center gap-1 sm:gap-1.5">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -41,10 +41,10 @@ export default function AdminNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:px-3.5 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center gap-1.5 py-1.5 px-2.5 sm:px-3 rounded-xl text-xs font-bold transition border cursor-pointer ${
                 isActive
-                  ? 'bg-indigo-600/15 border border-indigo-500/25 text-indigo-400'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-brand/10 border-brand/20 text-brand'
+                  : 'bg-transparent border-transparent text-text-muted hover:text-text-main hover:bg-bg-page'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -57,7 +57,7 @@ export default function AdminNav() {
       {/* Logout button */}
       <button
         onClick={handleLogout}
-        className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition"
+        className="flex items-center gap-1.5 py-1.5 px-2.5 rounded-xl text-xs font-bold text-text-muted hover:text-status-error-text hover:bg-status-error-bg border border-transparent hover:border-status-error-text/10 transition cursor-pointer"
       >
         <LogOut className="w-3.5 h-3.5" />
         <span className="hidden sm:inline">Đăng xuất</span>

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { MemberStatus, MemberCampaignPayment } from '@/lib/db/queries';
+import { MemberStatus } from '@/lib/db/queries';
 import QRModal from './QRModal';
-import { Search, Wallet, CheckCircle2, AlertCircle, QrCode, LogIn } from 'lucide-react';
+import StatusBadge from './StatusBadge';
+import { Search, Wallet, AlertCircle, QrCode, LogIn } from 'lucide-react';
 import Link from 'next/link';
 
 const BANK_NAMES: Record<string, string> = {
@@ -80,33 +81,31 @@ export default function PublicDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30">
-      
+    <div className="min-h-screen bg-bg-page text-text-main font-sans selection:bg-brand/30 pb-12">
       {/* Background gradients */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(8,145,178,0.08),transparent_50%)] pointer-events-none" />
-      <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(16,185,129,0.05),transparent_50%)] pointer-events-none" />
       
       {/* Container */}
       <div className="max-w-6xl mx-auto px-4 py-8 relative">
         
         {/* Navbar */}
-        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8 border-b border-slate-800/80 mb-8">
+        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-6 border-b border-border-subtle mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/10">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand to-emerald-500 flex items-center justify-center shadow-md shadow-brand/10">
               <span className="font-extrabold text-white text-lg font-mono">CF</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold tracking-tight text-text-main">
                 ClassFund - Quỹ Lớp
               </h1>
-              <p className="text-xs text-slate-400">Xem công nợ và đóng tiền trực tuyến</p>
+              <p className="text-xs text-text-muted">Xem công nợ và đóng tiền trực tuyến</p>
             </div>
           </div>
           <Link
             href="/login"
-            className="flex items-center gap-2 py-2 px-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/80 text-sm text-slate-200 hover:text-white transition shadow-sm font-semibold"
+            className="flex items-center gap-2 py-2 px-4 rounded-xl bg-bg-surface border border-border-subtle hover:border-brand/40 hover:bg-bg-page text-sm text-text-main font-semibold transition shadow-sm"
           >
-            <LogIn className="w-4 h-4 text-cyan-400" />
+            <LogIn className="w-4 h-4 text-brand" />
             Cán sự lớp đăng nhập
           </Link>
         </header>
@@ -115,49 +114,49 @@ export default function PublicDashboard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           
           {/* Total balance card */}
-          <div className="md:col-span-2 relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md p-6 flex flex-col justify-between shadow-xl">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="md:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 flex flex-col justify-between shadow-sm text-white">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             <div className="flex items-center justify-between">
-              <span className="text-sm text-slate-400 font-medium">Tổng Số Dư Quỹ Lớp</span>
-              <div className="p-2 rounded-xl bg-cyan-950/40 border border-cyan-800/20 text-cyan-400">
+              <span className="text-sm font-semibold opacity-90">Số dư quỹ hiện tại</span>
+              <div className="p-2 rounded-xl bg-white/10 border border-white/20">
                 <Wallet className="w-5 h-5" />
               </div>
             </div>
             <div className="mt-4">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                {balance.toLocaleString('vi-VN')} <span className="text-xl sm:text-2xl font-semibold text-cyan-400">₫</span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
+                {balance.toLocaleString('vi-VN')} ₫
               </h2>
-              <p className="text-xs text-slate-400 mt-2">Được cập nhật tự động ngay khi giao dịch được xác thực</p>
+              <p className="text-xs opacity-75 mt-2">Được cập nhật tự động ngay khi giao dịch được xác thực</p>
             </div>
           </div>
 
           {/* Quick Bank Info */}
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-900/40 backdrop-blur-md p-6 flex flex-col justify-between shadow-xl">
-            <h3 className="text-sm text-slate-400 font-medium">Tài Khoản Thụ Hưởng</h3>
-            <div className="mt-4 space-y-1.5">
-              <div className="text-xs text-slate-500 font-mono">{BANK_NAMES[bankBin] || 'Ngân hàng'}</div>
-              <div className="text-lg font-bold text-white font-mono">{bankAccountNumber}</div>
-              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">{bankAccountName}</div>
+          <div className="rounded-2xl border border-border-subtle bg-bg-surface p-6 flex flex-col justify-between shadow-sm">
+            <h3 className="text-sm text-text-muted font-semibold">Tài Khoản Thụ Hưởng</h3>
+            <div className="mt-3 space-y-1">
+              <div className="text-xs text-text-muted font-mono">{BANK_NAMES[bankBin] || 'Ngân hàng'}</div>
+              <div className="text-lg font-bold text-text-main font-mono">{bankAccountNumber}</div>
+              <div className="text-xs text-text-muted uppercase tracking-wide font-medium">{bankAccountName}</div>
             </div>
-            <div className="text-[10px] text-cyan-400/80 font-medium mt-4">
-              * Vui lòng nhấn "Quét QR" dưới tên của bạn để sinh mã đúng nội dung.
+            <div className="text-[10px] text-brand font-semibold mt-4">
+              * Vui lòng nhấn &quot;Quét QR&quot; dưới tên của bạn để sinh mã đúng nội dung.
             </div>
           </div>
         </div>
 
         {/* Search & Selector Panel */}
-        <div className="bg-slate-900/30 border border-slate-800/80 rounded-2xl p-4 sm:p-6 mb-8 backdrop-blur-sm">
+        <div className="bg-bg-surface border border-border-subtle rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             
             {/* Search Input */}
             <div className="relative w-full md:max-w-md">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên, mssv, mã tham chiếu..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none transition focus:ring-2 focus:ring-cyan-500/10"
+                className="w-full bg-bg-page border border-border-subtle focus:border-brand rounded-xl py-2 pl-10 pr-4 text-sm text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10"
               />
             </div>
 
@@ -168,10 +167,10 @@ export default function PublicDashboard({
                   <button
                     key={camp.id}
                     onClick={() => setSelectedCampaignId(camp.id)}
-                    className={`py-2 px-4 rounded-xl text-xs font-semibold border transition ${
+                    className={`py-2 px-4 rounded-xl text-xs font-semibold border transition cursor-pointer ${
                       selectedCampaignId === camp.id
-                        ? 'bg-cyan-500 border-cyan-400 text-slate-950 shadow-md shadow-cyan-500/10'
-                        : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
+                        ? 'bg-brand border-brand text-white shadow-sm hover:bg-brand-hover'
+                        : 'bg-bg-page border-border-subtle text-text-muted hover:border-brand/40 hover:text-text-main'
                     }`}
                   >
                     {camp.name}
@@ -183,120 +182,168 @@ export default function PublicDashboard({
         </div>
 
         {/* Member Status Table */}
-        <div className="bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
           {initialCampaigns.length === 0 ? (
             <div className="p-12 text-center flex flex-col items-center justify-center">
               <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
-              <h3 className="text-lg font-bold text-white mb-1">Không Có Đợt Thu Nào Hoạt Động</h3>
-              <p className="text-sm text-slate-400 max-w-sm">Hiện tại Ban cán sự lớp chưa mở đợt thu quỹ nào.</p>
+              <h3 className="text-lg font-bold text-text-main mb-1">Không Có Đợt Thu Nào Hoạt Động</h3>
+              <p className="text-sm text-text-muted max-w-sm">Hiện tại Ban cán sự lớp chưa mở đợt thu quỹ nào.</p>
             </div>
           ) : !selectedCampaign ? (
-            <div className="p-12 text-center">Chọn một đợt thu để hiển thị thông tin</div>
+            <div className="p-12 text-center text-text-muted">Chọn một đợt thu để hiển thị thông tin</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800/80 bg-slate-900/30 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    <th className="py-4 px-6">Thành viên</th>
-                    <th className="py-4 px-6 hidden sm:table-cell">Mã tham chiếu</th>
-                    <th className="py-4 px-6">Mức thu</th>
-                    <th className="py-4 px-6">Đã đóng</th>
-                    <th className="py-4 px-6">Trạng thái</th>
-                    <th className="py-4 px-6 text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/40 text-sm">
-                  {filteredMembers.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-12 px-6 text-center text-slate-500">
-                        Không tìm thấy thành viên nào khớp với tìm kiếm hoặc tham gia đợt này.
-                      </td>
+            <>
+              {/* Desktop view */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border-subtle bg-bg-page/50 text-xs font-bold text-text-muted uppercase tracking-wider">
+                      <th className="py-4 px-6">Thành viên</th>
+                      <th className="py-4 px-6">Mã tham chiếu</th>
+                      <th className="py-4 px-6 text-right">Mức thu</th>
+                      <th className="py-4 px-6 text-right">Đã đóng</th>
+                      <th className="py-4 px-6">Trạng thái</th>
+                      <th className="py-4 px-6 text-right">Hành động</th>
                     </tr>
-                  ) : (
-                    filteredMembers.map((member) => {
-                      const payment = member.payments.find(p => p.campaignId === selectedCampaign.id);
-                      const paid = payment?.paidAmount || 0;
-                      const target = payment?.targetAmount || 0;
-                      const isPaidFull = paid >= target;
-                      const remaining = Math.max(0, target - paid);
+                  </thead>
+                  <tbody className="divide-y divide-border-subtle/50 text-sm">
+                    {filteredMembers.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="py-12 px-6 text-center text-text-muted">
+                          Không tìm thấy thành viên nào khớp với tìm kiếm hoặc tham gia đợt này.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredMembers.map((member) => {
+                        const payment = member.payments.find(p => p.campaignId === selectedCampaign.id);
+                        const paid = payment?.paidAmount || 0;
+                        const target = payment?.targetAmount || 0;
+                        const isPaidFull = paid >= target;
+                        const status = isPaidFull ? 'full' : paid > 0 ? 'partial' : 'unpaid';
 
-                      return (
-                        <tr
-                          key={member.id}
-                          className="hover:bg-slate-900/20 transition group"
-                        >
-                          {/* Member details */}
-                          <td className="py-4 px-6">
-                            <div className="font-semibold text-white group-hover:text-cyan-400 transition">
-                              {member.fullName}
-                            </div>
-                            {member.studentId && (
-                              <div className="text-xs text-slate-500 mt-0.5 font-mono">
-                                MSSV: {member.studentId}
+                        return (
+                          <tr
+                            key={member.id}
+                            className="hover:bg-bg-page/40 transition group"
+                          >
+                            {/* Member details */}
+                            <td className="py-4 px-6">
+                              <div className="font-semibold text-text-main group-hover:text-brand transition">
+                                {member.fullName}
                               </div>
+                              {member.studentId && (
+                                <div className="text-xs text-text-muted mt-0.5 font-mono">
+                                  MSSV: {member.studentId}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* Reference code */}
+                            <td className="py-4 px-6 font-mono text-xs text-text-muted">
+                              {member.referenceCode}
+                            </td>
+
+                            {/* Target amount */}
+                            <td className="py-4 px-6 text-right text-text-muted font-medium tabular-nums">
+                              {target.toLocaleString('vi-VN')} ₫
+                            </td>
+
+                            {/* Paid amount */}
+                            <td className="py-4 px-6 text-right font-semibold text-text-main tabular-nums">
+                              {paid.toLocaleString('vi-VN')} ₫
+                            </td>
+
+                            {/* Status */}
+                            <td className="py-4 px-6">
+                              <StatusBadge status={status} />
+                            </td>
+
+                            {/* Action button */}
+                            <td className="py-4 px-6 text-right">
+                              {isPaidFull ? (
+                                <span className="text-xs text-text-muted pr-3 select-none">Đã hoàn thành</span>
+                              ) : (
+                                <button
+                                  onClick={() => handleOpenQr(member)}
+                                  className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-xl bg-brand/10 text-brand border border-brand/20 hover:bg-brand hover:text-white hover:border-brand text-xs font-bold transition cursor-pointer"
+                                >
+                                  <QrCode className="w-3.5 h-3.5" />
+                                  Quét QR
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile view */}
+              <div className="block sm:hidden divide-y divide-border-subtle/50">
+                {filteredMembers.length === 0 ? (
+                  <div className="py-12 px-6 text-center text-text-muted text-sm">
+                    Không tìm thấy thành viên nào khớp với tìm kiếm hoặc tham gia đợt này.
+                  </div>
+                ) : (
+                  filteredMembers.map((member) => {
+                    const payment = member.payments.find(p => p.campaignId === selectedCampaign.id);
+                    const paid = payment?.paidAmount || 0;
+                    const target = payment?.targetAmount || 0;
+                    const isPaidFull = paid >= target;
+                    const status = isPaidFull ? 'full' : paid > 0 ? 'partial' : 'unpaid';
+
+                    return (
+                      <div key={member.id} className="p-4 space-y-3 hover:bg-bg-page/20 transition">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="font-semibold text-text-main">{member.fullName}</div>
+                            {member.studentId && (
+                              <div className="text-[11px] text-text-muted font-mono mt-0.5">MSSV: {member.studentId}</div>
                             )}
-                          </td>
+                            <div className="text-[10px] text-text-muted font-mono mt-0.5">Mã CK: {member.referenceCode}</div>
+                          </div>
+                          <StatusBadge status={status} />
+                        </div>
 
-                          {/* Reference code */}
-                          <td className="py-4 px-6 hidden sm:table-cell font-mono text-xs text-slate-400">
-                            {member.referenceCode}
-                          </td>
+                        <div className="grid grid-cols-2 gap-2 text-xs py-1 px-3 bg-bg-page rounded-xl border border-border-subtle/40">
+                          <div>
+                            <span className="text-text-muted block text-[10px]">Mức thu</span>
+                            <span className="font-semibold text-text-main tabular-nums">{target.toLocaleString('vi-VN')} ₫</span>
+                          </div>
+                          <div>
+                            <span className="text-text-muted block text-[10px]">Đã đóng</span>
+                            <span className="font-bold text-text-main tabular-nums">{paid.toLocaleString('vi-VN')} ₫</span>
+                          </div>
+                        </div>
 
-                          {/* Target amount */}
-                          <td className="py-4 px-6 text-slate-300 font-medium">
-                            {target.toLocaleString('vi-VN')} ₫
-                          </td>
-
-                          {/* Paid amount */}
-                          <td className="py-4 px-6 font-semibold text-white">
-                            {paid.toLocaleString('vi-VN')} ₫
-                          </td>
-
-                          {/* Status */}
-                          <td className="py-4 px-6">
-                            {isPaidFull ? (
-                              <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Đóng đủ
-                              </span>
-                            ) : paid > 0 ? (
-                              <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                                Trả góp
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                Chưa đóng
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Action button */}
-                          <td className="py-4 px-6 text-right">
-                            {isPaidFull ? (
-                              <span className="text-xs text-slate-500 pr-3 select-none">Đã hoàn thành</span>
-                            ) : (
-                              <button
-                                onClick={() => handleOpenQr(member)}
-                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-cyan-950/80 text-cyan-400 border border-cyan-800/40 hover:bg-cyan-500 hover:text-slate-950 hover:border-cyan-400 text-xs font-semibold transition"
-                              >
-                                <QrCode className="w-3.5 h-3.5" />
-                                Quét QR
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        <div className="flex justify-end">
+                          {isPaidFull ? (
+                            <span className="text-xs text-text-muted py-1.5 select-none font-medium">Đã hoàn thành</span>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenQr(member)}
+                              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-brand text-white text-xs font-bold transition cursor-pointer hover:bg-brand-hover shadow-sm"
+                            >
+                              <QrCode className="w-3.5 h-3.5" />
+                              Quét QR đóng tiền
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
 
       {/* QR payment modal */}
       <QRModal
+        key={selectedMember ? `${selectedMember.id}-${selectedCampaign?.id}` : 'empty'}
         isOpen={isQrOpen}
         onClose={() => setIsQrOpen(false)}
         member={
@@ -326,4 +373,3 @@ export default function PublicDashboard({
     </div>
   );
 }
-

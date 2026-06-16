@@ -124,7 +124,6 @@ export default function CampaignMembersDashboard({
 
     setMembersList(prev =>
       prev.map(m => {
-        // Only apply to checked members, or auto-check and apply to everyone
         return {
           ...m,
           isEnrolled: true,
@@ -147,10 +146,10 @@ export default function CampaignMembersDashboard({
 
     const lines = excelText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     let matchedCount = 0;
-    let unmatchedLines: string[] = [];
+    const unmatchedLines: string[] = [];
 
     // Create a mutable copy of membersList to update
-    let updatedList = [...membersList];
+    const updatedList = [...membersList];
 
     for (const line of lines) {
       const parts = line.split('\t').map(p => p.trim());
@@ -244,7 +243,7 @@ export default function CampaignMembersDashboard({
         m => m.isEnrolled && !membersList.find(x => x.memberId === m.memberId)?.isEnrolled
       );
 
-      let removeErrors = [];
+      const removeErrors: string[] = [];
       for (const rm of toRemove) {
         const delRes = await removeMemberFromCampaign({
           campaignId: campaign.id,
@@ -264,8 +263,9 @@ export default function CampaignMembersDashboard({
         setSaveMessage({ type: 'success', text: 'Đã lưu cấu hình mức thu thành công!' });
         router.refresh();
       }
-    } catch (err: any) {
-      setSaveMessage({ type: 'error', text: err.message || 'Lỗi hệ thống' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Lỗi hệ thống';
+      setSaveMessage({ type: 'error', text: msg });
     } finally {
       setSaving(false);
     }
@@ -274,29 +274,31 @@ export default function CampaignMembersDashboard({
   return (
     <div className="space-y-6">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border-subtle pb-5">
         <div className="space-y-1">
-          <Link href="/admin/setup" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition">
+          <Link href="/admin/setup" className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-main transition font-semibold cursor-pointer">
             <ArrowLeft className="w-3.5 h-3.5" />
             Quay lại cài đặt đợt thu
           </Link>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold text-text-main flex items-center gap-2 tracking-tight">
             Cấu hình mức thu: {campaign.name}
-            <span className={`text-[10px] font-bold py-0.5 px-2 rounded-full ${
-              campaign.status === 'open' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'
+            <span className={`text-[10px] font-bold py-0.5 px-2.5 rounded-full ${
+              campaign.status === 'open' 
+                ? 'bg-status-success-bg text-status-success-text border border-status-success-text/10' 
+                : 'bg-bg-page border border-border-subtle text-text-muted'
             }`}>
               {campaign.status === 'open' ? 'Đang mở' : 'Đã đóng'}
             </span>
           </h1>
           {campaign.description && (
-            <p className="text-xs text-slate-500">{campaign.description}</p>
+            <p className="text-xs text-text-muted">{campaign.description}</p>
           )}
         </div>
 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center justify-center gap-2 py-2 px-5 bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold rounded-lg text-xs transition shadow-lg shadow-cyan-500/10 cursor-pointer"
+          className="flex items-center justify-center gap-2 py-2 px-5 bg-brand hover:bg-brand-hover text-white disabled:bg-bg-page disabled:text-text-muted border border-transparent disabled:border-border-subtle font-bold rounded-xl text-xs transition shadow-sm cursor-pointer h-10"
         >
           {saving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           Lưu thay đổi
@@ -307,24 +309,24 @@ export default function CampaignMembersDashboard({
       {saveMessage && (
         <div className={`p-4 rounded-xl border flex items-start gap-2.5 text-xs whitespace-pre-line ${
           saveMessage.type === 'success' 
-            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-            : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+            ? 'bg-status-success-bg border-status-success-text/10 text-status-success-text' 
+            : 'bg-status-error-bg border-status-error-text/10 text-status-error-text'
         }`}>
           {saveMessage.type === 'success' ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />}
-          <span>{saveMessage.text}</span>
+          <span className="font-semibold">{saveMessage.text}</span>
         </div>
       )}
 
       {/* Toolbar */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Flat rate applier */}
-        <div className="bg-slate-900/30 border border-slate-800/80 p-4 rounded-xl space-y-3 flex flex-col justify-between">
+        <div className="bg-bg-surface border border-border-subtle p-5 rounded-2xl space-y-4 flex flex-col justify-between shadow-sm">
           <div className="space-y-1">
-            <h3 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <h3 className="text-xs font-bold text-text-main flex items-center gap-1.5 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               Áp dụng mức thu chung
             </h3>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-text-muted">
               Gán nhanh cùng một mức thu cho tất cả các thành viên lớp.
             </p>
           </div>
@@ -334,11 +336,11 @@ export default function CampaignMembersDashboard({
               placeholder="Ví dụ: 100.000"
               value={flatAmount}
               onChange={(e) => setFlatAmount(e.target.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'))}
-              className="flex-1 bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2 px-3 text-xs text-white placeholder-slate-600 outline-none transition"
+              className="flex-1 bg-bg-page border border-border-subtle focus:border-brand rounded-xl py-2 px-3 text-xs text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-medium"
             />
             <button
               onClick={handleApplyFlatAmount}
-              className="py-2 px-4 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold transition cursor-pointer"
+              className="py-2 px-4 bg-bg-page border border-border-subtle hover:border-brand hover:text-brand text-text-main rounded-xl text-xs font-bold transition cursor-pointer h-10"
             >
               Áp dụng
             </button>
@@ -346,19 +348,19 @@ export default function CampaignMembersDashboard({
         </div>
 
         {/* Excel Copy-Paste Tool Trigger */}
-        <div className="bg-slate-900/30 border border-slate-800/80 p-4 rounded-xl space-y-3 flex flex-col justify-between">
+        <div className="bg-bg-surface border border-border-subtle p-5 rounded-2xl space-y-4 flex flex-col justify-between shadow-sm">
           <div className="space-y-1">
-            <h3 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase tracking-wider">
-              <Clipboard className="w-3.5 h-3.5 text-cyan-400" />
+            <h3 className="text-xs font-bold text-text-main flex items-center gap-1.5 uppercase tracking-wider">
+              <Clipboard className="w-3.5 h-3.5 text-brand" />
               Sao chép - Dán từ Excel
             </h3>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-text-muted">
               Dán cột dữ liệu từ file Excel (Tên/MSSV + Số tiền + Ghi chú) để tự động điền nhanh.
             </p>
           </div>
           <button
             onClick={() => setShowExcelModal(true)}
-            className="w-full py-2 px-4 bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 hover:text-white rounded-lg text-xs font-semibold transition cursor-pointer"
+            className="w-full py-2 px-4 bg-bg-page border border-border-subtle hover:border-brand hover:text-brand text-text-main rounded-xl text-xs font-bold transition cursor-pointer h-10"
           >
             Mở công cụ nhập Excel
           </button>
@@ -366,82 +368,84 @@ export default function CampaignMembersDashboard({
       </div>
 
       {/* Main Members Configuration List Table */}
-      <div className="bg-slate-900/20 border border-slate-800/80 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 uppercase font-bold tracking-wider">
-              <th className="py-3 px-4 w-12 text-center">Tham gia</th>
-              <th className="py-3 px-4">Thành viên</th>
-              <th className="py-3 px-4">Số tiền cần đóng (VND)</th>
-              <th className="py-3 px-4">Đã đóng</th>
-              <th className="py-3 px-4">Còn thiếu</th>
-              <th className="py-3 px-4">Ghi chú</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800/40">
-            {membersList.map((m) => {
-              const remaining = Math.max(0, m.expectedAmount - m.paidAmount);
-              return (
-                <tr key={m.memberId} className={`transition ${
-                  m.isEnrolled ? 'bg-cyan-500/[0.01]' : 'opacity-50 bg-slate-950/20'
-                }`}>
-                  <td className="py-3 px-4 text-center">
-                    <input
-                      type="checkbox"
-                      checked={m.isEnrolled}
-                      onChange={(e) => handleEnrollToggle(m.memberId, e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-800 text-cyan-500 bg-slate-950 focus:ring-cyan-500"
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-white">{m.fullName}</div>
-                    <div className="text-[10px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                      <span>MSSV: {m.studentId || '-'}</span>
-                      <span className="text-slate-700">•</span>
-                      <span>Mã: {m.referenceCode}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="text"
-                      disabled={!m.isEnrolled}
-                      value={m.isEnrolled ? m.expectedAmount.toLocaleString('vi-VN') : ''}
-                      placeholder="0"
-                      onChange={(e) => handleAmountChange(m.memberId, e.target.value)}
-                      className="w-36 bg-slate-950 border border-slate-800 disabled:opacity-40 disabled:border-transparent focus:border-cyan-500 rounded-lg py-1.5 px-3 text-xs text-white placeholder-slate-700 outline-none transition text-right font-semibold"
-                    />
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-slate-400">
-                    {formatVND(m.paidAmount)}
-                  </td>
-                  <td className="py-3 px-4 font-semibold text-slate-300">
-                    {formatVND(remaining)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <input
-                      type="text"
-                      disabled={!m.isEnrolled}
-                      value={m.note || ''}
-                      placeholder="Ghi chú đóng..."
-                      onChange={(e) => handleNoteChange(m.memberId, e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 disabled:opacity-40 disabled:border-transparent focus:border-cyan-500 rounded-lg py-1.5 px-3 text-xs text-white placeholder-slate-700 outline-none transition"
-                    />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-border-subtle bg-bg-page/50 text-text-muted uppercase font-bold tracking-wider">
+                <th className="py-3.5 px-4 w-16 text-center">Tham gia</th>
+                <th className="py-3.5 px-4">Thành viên</th>
+                <th className="py-3.5 px-4">Số tiền cần đóng (VND)</th>
+                <th className="py-3.5 px-4">Đã đóng</th>
+                <th className="py-3.5 px-4">Còn thiếu</th>
+                <th className="py-3.5 px-4">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-subtle/50">
+              {membersList.map((m) => {
+                const remaining = Math.max(0, m.expectedAmount - m.paidAmount);
+                return (
+                  <tr key={m.memberId} className={`transition ${
+                    m.isEnrolled ? 'bg-brand/[0.01]' : 'opacity-60 bg-bg-page/20'
+                  }`}>
+                    <td className="py-3.5 px-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={m.isEnrolled}
+                        onChange={(e) => handleEnrollToggle(m.memberId, e.target.checked)}
+                        className="w-4 h-4 rounded border-border-subtle text-brand bg-bg-page focus:ring-brand focus:ring-2 cursor-pointer outline-none"
+                      />
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-text-main">{m.fullName}</div>
+                      <div className="text-[10px] text-text-muted flex items-center gap-1.5 mt-0.5">
+                        <span>MSSV: {m.studentId || '-'}</span>
+                        <span className="text-text-muted/40">•</span>
+                        <span>Mã: {m.referenceCode}</span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <input
+                        type="text"
+                        disabled={!m.isEnrolled}
+                        value={m.isEnrolled ? m.expectedAmount.toLocaleString('vi-VN') : ''}
+                        placeholder="0"
+                        onChange={(e) => handleAmountChange(m.memberId, e.target.value)}
+                        className="w-32 bg-bg-page border border-border-subtle focus:border-brand disabled:opacity-40 disabled:border-transparent rounded-xl py-1.5 px-3 text-xs text-text-main placeholder-text-muted outline-none transition text-right font-bold h-9 focus:ring-2 focus:ring-brand/10 tabular-nums"
+                      />
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-text-muted tabular-nums">
+                      {formatVND(m.paidAmount)}
+                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-text-main tabular-nums">
+                      {formatVND(remaining)}
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <input
+                        type="text"
+                        disabled={!m.isEnrolled}
+                        value={m.note || ''}
+                        placeholder="Ghi chú đóng..."
+                        onChange={(e) => handleNoteChange(m.memberId, e.target.value)}
+                        className="w-full max-w-xs bg-bg-page border border-border-subtle focus:border-brand disabled:opacity-40 disabled:border-transparent rounded-xl py-1.5 px-3 text-xs text-text-main placeholder-text-muted outline-none transition h-9 focus:ring-2 focus:ring-brand/10"
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Excel Copy-Paste Tool Dialog Modal */}
       {showExcelModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+          <div className="w-full max-w-2xl bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
             
-            <div className="p-4 border-b border-slate-850 flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Clipboard className="w-4 h-4 text-cyan-400" />
+            <div className="p-4 border-b border-border-subtle flex items-center justify-between">
+              <h2 className="text-sm font-bold text-text-main uppercase tracking-wider flex items-center gap-1.5">
+                <Clipboard className="w-4 h-4 text-brand" />
                 Công cụ dán dữ liệu Excel
               </h2>
               <button
@@ -450,36 +454,36 @@ export default function CampaignMembersDashboard({
                   setExcelError(null);
                   setExcelSuccess(null);
                 }}
-                className="p-1 rounded bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                className="p-1 rounded-full text-text-muted hover:text-text-main hover:bg-bg-page transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="p-5 space-y-4 flex-1 overflow-y-auto">
-              <div className="bg-slate-950 p-3 rounded-lg border border-slate-850 space-y-1.5 text-[11px] text-slate-400 leading-relaxed">
-                <p className="font-bold text-slate-200">Hướng dẫn sử dụng:</p>
+              <div className="bg-bg-page p-3.5 rounded-xl border border-border-subtle space-y-1.5 text-[11px] text-text-muted leading-relaxed">
+                <p className="font-bold text-text-main">Hướng dẫn sử dụng:</p>
                 <p>1. Copy 2 hoặc 3 cột từ bảng Excel của bạn. Ví dụ:</p>
-                <pre className="bg-slate-900 p-2 rounded font-mono text-[10px] text-slate-300 mt-1 select-all">
+                <pre className="bg-bg-surface p-2 rounded-lg border border-border-subtle/50 font-mono text-[10px] text-text-main mt-1 select-all">
                   Nguyễn Văn A	100000	Giảm giá 5%<br />
                   2221050001	150000	Không ghi chú<br />
                   TRANTHIB	50000
                 </pre>
-                <p className="mt-1">2. Dán toàn bộ vào ô văn bản phía dưới rồi ấn <strong className="text-cyan-400">"Xử lý và Nhập"</strong>.</p>
-                <p>3. Hệ thống sẽ tự khớp theo <strong className="text-slate-200">Họ tên, MSSV hoặc Mã CK</strong> của thành viên lớp.</p>
+                <p className="mt-1">2. Dán toàn bộ vào ô văn bản phía dưới rồi ấn <strong className="text-brand">&quot;Xử lý và Nhập&quot;</strong>.</p>
+                <p>3. Hệ thống sẽ tự khớp theo <strong className="text-text-main">Họ tên, MSSV hoặc Mã CK</strong> của thành viên lớp.</p>
               </div>
 
               {excelSuccess && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl flex items-center gap-2 text-xs">
+                <div className="p-3 bg-status-success-bg border border-status-success-text/10 text-status-success-text rounded-xl flex items-center gap-2 text-xs">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                  <span>{excelSuccess}</span>
+                  <span className="font-semibold">{excelSuccess}</span>
                 </div>
               )}
 
               {excelError && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl flex items-start gap-2 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                <div className="p-3 bg-status-error-bg border border-status-error-text/10 text-status-error-text rounded-xl flex items-start gap-2 text-xs font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{excelError}</span>
+                  <span className="font-semibold">{excelError}</span>
                 </div>
               )}
 
@@ -488,24 +492,24 @@ export default function CampaignMembersDashboard({
                 onChange={(e) => setExcelText(e.target.value)}
                 placeholder="Dán dữ liệu Excel tại đây..."
                 rows={8}
-                className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-xl p-3 text-xs text-white placeholder-slate-700 outline-none transition font-mono resize-none"
+                className="w-full bg-bg-page border border-border-subtle focus:border-brand rounded-xl p-3 text-xs text-text-main placeholder-text-muted outline-none transition font-mono resize-none focus:ring-2 focus:ring-brand/10"
               />
             </div>
 
-            <div className="p-4 border-t border-slate-850 bg-slate-950/20 flex justify-end gap-2 text-xs">
+            <div className="p-4 border-t border-border-subtle bg-bg-page/20 flex justify-end gap-2 text-xs h-18 items-center">
               <button
                 onClick={() => {
                   setShowExcelModal(false);
                   setExcelError(null);
                   setExcelSuccess(null);
                 }}
-                className="py-2 px-4 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-lg transition"
+                className="py-2.5 px-4 bg-bg-page border border-border-subtle text-text-muted hover:text-text-main rounded-xl transition font-bold cursor-pointer h-10"
               >
                 Đóng
               </button>
               <button
                 onClick={handleImportExcel}
-                className="py-2 px-5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg transition"
+                className="py-2.5 px-5 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl transition cursor-pointer h-10"
               >
                 Xử lý và Nhập
               </button>

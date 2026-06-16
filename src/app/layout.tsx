@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { ToastProvider } from "./_components/Toast";
+
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
   variable: "--font-inter",
@@ -22,8 +24,10 @@ export default function RootLayout({
       lang="vi"
       className={`${inter.variable} h-full antialiased`}
     >
-      <body className={`${inter.className} min-h-full flex flex-col bg-slate-950 text-slate-100`}>
-        {children}
+      <body className={`${inter.className} min-h-full flex flex-col bg-bg-page text-text-main`}>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

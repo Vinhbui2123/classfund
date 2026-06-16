@@ -91,8 +91,9 @@ export default function ExpensesDashboard({
           setMessage({ type: 'error', text: res.error || 'Ghi nhận khoản chi thất bại' });
         }
       }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Lỗi khi xử lý' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi xử lý';
+      setMessage({ type: 'error', text: msg });
     } finally {
       setLoading(false);
     }
@@ -135,8 +136,9 @@ export default function ExpensesDashboard({
       } else {
         setMessage({ type: 'error', text: res.error || 'Xoá khoản chi thất bại' });
       }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'Lỗi khi xoá' });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Lỗi khi xoá';
+      setMessage({ type: 'error', text: msg });
     }
   };
 
@@ -151,73 +153,71 @@ export default function ExpensesDashboard({
       
       {/* Add / Edit Form (Left column) */}
       <div className="lg:col-span-1 space-y-6">
-        <div className="border-b border-slate-800 pb-3">
-          <h2 className="text-lg font-bold text-white">
+        <div className="border-b border-border-subtle pb-3 h-11 flex items-center">
+          <h2 className="text-lg font-bold text-text-main">
             {editingExpense ? 'Sửa Khoản Chi' : 'Ghi Nhận Chi Tiêu'}
           </h2>
         </div>
 
         {/* Feedback Message */}
         {message && (
-          <div className={`p-3 rounded-xl border flex items-center gap-2.5 text-xs ${
+          <div className={`p-3.5 rounded-xl border flex items-center gap-2.5 text-xs ${
             message.type === 'success' 
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-              : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+              ? 'bg-status-success-bg border-status-success-text/10 text-status-success-text' 
+              : 'bg-status-error-bg border-status-error-text/10 text-status-error-text'
           }`}>
             {message.type === 'success' ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
-            <span>{message.text}</span>
+            <span className="font-semibold">{message.text}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-slate-900/30 border border-slate-800/80 p-5 rounded-xl space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="bg-bg-surface border border-border-subtle p-5 rounded-2xl space-y-4 text-xs shadow-sm">
           
           {/* Description */}
           <div className="space-y-1">
-            <label className="text-slate-400 font-semibold uppercase tracking-wider">Nội dung chi:</label>
+            <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider block">Nội dung chi</label>
             <input
               type="text"
               placeholder="Mua nước ngọt liên hoan..."
               value={form.description}
               onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2.5 px-3 text-white placeholder-slate-650 outline-none transition"
+              className="w-full bg-bg-page border border-border-subtle hover:border-brand/40 focus:border-brand rounded-xl py-2 px-3 text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-medium"
               required
             />
           </div>
 
           {/* Amount */}
           <div className="space-y-1">
-            <label className="text-slate-400 font-semibold uppercase tracking-wider">Số tiền chi (VNĐ):</label>
+            <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider block">Số tiền chi (VNĐ)</label>
             <input
               type="number"
               placeholder="250000"
               value={form.amount}
               onChange={(e) => setForm(prev => ({ ...prev, amount: e.target.value }))}
-              className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2.5 px-3 text-white placeholder-slate-650 outline-none transition"
+              className="w-full bg-bg-page border border-border-subtle hover:border-brand/40 focus:border-brand rounded-xl py-2 px-3 text-text-main placeholder-text-muted outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-semibold text-right"
               required
             />
           </div>
 
           {/* Date */}
           <div className="space-y-1">
-            <label className="text-slate-400 font-semibold uppercase tracking-wider">Ngày chi:</label>
-            <div className="relative">
-              <input
-                type="date"
-                value={form.expenseDate}
-                onChange={(e) => setForm(prev => ({ ...prev, expenseDate: e.target.value }))}
-                className="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-cyan-500 rounded-lg py-2.5 px-3 text-white outline-none transition"
-                required
-              />
-            </div>
+            <label className="text-text-muted text-[10px] font-bold uppercase tracking-wider block">Ngày chi</label>
+            <input
+              type="date"
+              value={form.expenseDate}
+              onChange={(e) => setForm(prev => ({ ...prev, expenseDate: e.target.value }))}
+              className="w-full bg-bg-page border border-border-subtle hover:border-brand/40 focus:border-brand rounded-xl py-2 px-3 text-text-main outline-none transition focus:ring-2 focus:ring-brand/10 h-10 font-medium"
+              required
+            />
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 h-10">
             {editingExpense && (
               <button
                 type="button"
                 onClick={handleCancelEdit}
-                className="py-2.5 px-3.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg transition font-semibold"
+                className="py-2.5 px-4 bg-bg-page border border-border-subtle text-text-muted hover:text-text-main rounded-xl transition font-bold cursor-pointer"
               >
                 Huỷ
               </button>
@@ -225,7 +225,7 @@ export default function ExpensesDashboard({
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-1.5 py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg font-bold transition disabled:opacity-55"
+              className="flex items-center gap-1.5 py-2.5 px-4 bg-brand hover:bg-brand-hover text-white rounded-xl font-bold transition disabled:opacity-55 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               {editingExpense ? 'Cập nhật' : 'Ghi nhận'}
@@ -237,53 +237,55 @@ export default function ExpensesDashboard({
 
       {/* Expenses History List (Right columns) */}
       <div className="lg:col-span-2 space-y-6">
-        <div className="border-b border-slate-800 pb-3">
-          <h2 className="text-lg font-bold text-white">Lịch Sử Chi Quỹ</h2>
+        <div className="border-b border-border-subtle pb-3 h-11 flex items-center">
+          <h2 className="text-lg font-bold text-text-main">Lịch Sử Chi Quỹ</h2>
         </div>
 
         {/* Expenses List Table */}
-        <div className="bg-slate-900/20 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-bg-surface border border-border-subtle rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-slate-800/80 bg-slate-900/30 text-slate-400 uppercase font-bold tracking-wider">
-                  <th className="py-4 px-6">Ngày chi</th>
-                  <th className="py-4 px-6">Nội dung</th>
-                  <th className="py-4 px-6">Số tiền</th>
-                  <th className="py-4 px-6 text-right">Thao tác</th>
+                <tr className="border-b border-border-subtle bg-bg-page/50 text-text-muted uppercase font-bold tracking-wider">
+                  <th className="py-3.5 px-6">Ngày chi</th>
+                  <th className="py-3.5 px-6">Nội dung</th>
+                  <th className="py-3.5 px-6 text-right">Số tiền</th>
+                  <th className="py-3.5 px-6 text-right">Thao tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/40">
+              <tbody className="divide-y divide-border-subtle/50">
                 {list.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-12 px-6 text-center text-slate-500">
+                    <td colSpan={4} className="py-12 px-6 text-center text-text-muted">
                       Chưa ghi nhận khoản chi tiêu nào từ quỹ.
                     </td>
                   </tr>
                 ) : (
                   list.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-900/10 transition">
-                      <td className="py-4 px-6 text-slate-400 flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-cyan-500/70" />
-                        <span>{formatDate(item.expenseDate)}</span>
+                    <tr key={item.id} className="hover:bg-bg-page/20 transition">
+                      <td className="py-4 px-6 text-text-muted">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-brand" />
+                          <span>{formatDate(item.expenseDate)}</span>
+                        </div>
                       </td>
-                      <td className="py-4 px-6 font-semibold text-white max-w-[200px] truncate" title={item.description}>
+                      <td className="py-4 px-6 font-semibold text-text-main max-w-[200px] truncate" title={item.description}>
                         {item.description}
                       </td>
-                      <td className="py-4 px-6 font-bold text-rose-400">
+                      <td className="py-4 px-6 font-bold text-status-error-text text-right tabular-nums">
                         -{item.amount.toLocaleString('vi-VN')} ₫
                       </td>
-                      <td className="py-4 px-6 text-right space-x-1">
+                      <td className="py-4 px-6 text-right space-x-1 whitespace-nowrap">
                         <button
                           onClick={() => handleEditClick(item)}
-                          className="p-1.5 rounded bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                          className="p-1.5 rounded-xl hover:bg-bg-page text-text-muted hover:text-brand transition cursor-pointer inline-flex items-center"
                           title="Sửa khoản chi"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteExpense(item.id)}
-                          className="p-1.5 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                          className="p-1.5 rounded-xl hover:bg-status-error-bg text-text-muted hover:text-status-error-text transition cursor-pointer inline-flex items-center"
                           title="Xoá khoản chi"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
